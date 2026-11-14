@@ -16,6 +16,6 @@ export interface LineResult {
 export interface SpinResult {
     matrix: number[][];
     totalWin: number;
-    lineresult: LineResult[];
+    lineResults: LineResult[];
 }
 
