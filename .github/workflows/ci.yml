@@ -1,0 +1,39 @@
+name: ci
+
+on: 
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: slot-game
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: slot-game/package-lock.json
+    - run: npm ci
+    - run: npm test
+  docker:
+    needs: test                     
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t slot-backend .
+      - run: docker run -d -p 3000:3000 --name slot slot-backend
+      - name: Smoke test
+        run: |
+          for i in {1..10}; do
+            curl -fsS localhost:3000/health && exit 0
+            sleep 2
+          done
+          echo "Health check failed"
+          exit 1
