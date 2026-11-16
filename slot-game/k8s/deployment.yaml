@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slot
+spec:
+  replicas: 3                 # how many pods do you want?
+  selector:
+    matchLabels:
+      app: slot                  # this deployment manages pods labelled app: slot
+  template:                      # the blueprint for each pod
+    metadata:
+      labels:
+        app: slot                # must match the selector above
+    spec:
+      containers:
+        - name: slot
+          image: slot-backend:v1
+          imagePullPolicy: IfNotPresent   # use the local image, don't download
+          ports:
+            - containerPort: 3000         # which port does your app listen on?
+          readinessProbe:
+            httpGet:
+              path: /health                 # which endpoint says "I'm OK"?
+              port: 3000
+          resources:
+            requests: { cpu: 100m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slot
+spec:
+  type: NodePort
+  selector:
+    app: slot                     # which pods get the traffic?
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30080
